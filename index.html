@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cyber Terminal</title>
+    <style>
+        :root {
+            --matrix-green: #00ff66;
+            --matrix-dark: #0d1117;
+            --matrix-glow: rgba(0, 255, 102, 0.4);
+            --bg-overlay: rgba(13, 17, 23, 0.85);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: var(--matrix-dark);
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden;
+            color: var(--matrix-green);
+        }
+
+        /* --- BACKGROUND MATRIX RAIN EFFECT --- */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* --- INTRO SCREEN --- */
+        #intro-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 100;
+            background: radial-gradient(circle, rgba(0,30,10,0.8) 0%, rgba(5,5,5,0.95) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s ease, visibility 0.8s;
+        }
+
+        .graphic-container {
+            position: relative;
+            width: 320px;
+            height: 480px;
+            border: 2px solid var(--matrix-green);
+            box-shadow: 0 0 20px var(--matrix-glow);
+            border-radius: 8px;
+            overflow: hidden;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0;
+        }
+
+        .emoji-header {
+            font-size: 2.5rem;
+            letter-spacing: 10px;
+            text-shadow: 0 0 10px var(--matrix-green);
+            z-index: 2;
+        }
+
+        /* Simulated Samurai Cat via pure CSS art / placeholders */
+        .samurai-cat-placeholder {
+            width: 160px;
+            height: 160px;
+            border: 1px dashed var(--matrix-green);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: rgba(0, 20, 0, 0.6);
+            z-index: 2;
+        }
+        .samurai-cat-placeholder::before {
+            content: "🕶️🐱⚔️";
+            font-size: 3rem;
+        }
+
+        .welcome-banner {
+            font-size: 1.8rem;
+            font-weight: bold;
+            letter-spacing: 4px;
+            border: 2px double var(--matrix-green);
+            padding: 10px 20px;
+            background: rgba(0,0,0,0.8);
+            text-shadow: 0 0 8px var(--matrix-green);
+            box-shadow: inset 0 0 10px var(--matrix-glow);
+            z-index: 2;
+            cursor: pointer;
+            animation: pulse 2s infinite;
+        }
+
+        .mute-btn {
+            position: absolute;
+            top: 55%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.85);
+            border: 1px solid var(--matrix-green);
+            color: var(--matrix-green);
+            padding: 6px 14px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border-radius: 4px;
+            box-shadow: 0 0 8px var(--matrix-glow);
+        }
+        .mute-btn:active {
+            background: var(--matrix-green);
+            color: #000;
+        }
+
+        /* --- COCKPIT INTERFACE --- */
+        #cockpit {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            display: grid;
+            grid-template-columns: 70px 1fr;
+            grid-template-rows: 1fr;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        /* Left Control Deck */
+        .control-deck {
+            background: rgba(13, 17, 23, 0.75);
+            border-right: 1px solid rgba(0, 255, 102, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+
+        .deck-icon {
+            width: 50px;
+            height: 50px;
+            border: 1px solid var(--matrix-green);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            background: rgba(0, 40, 10, 0.3);
+            transition: all 0.2s ease;
+            box-shadow: 0 0 5px rgba(0, 255, 102, 0.1);
+        }
+
+        .deck-icon:active, .deck-icon.active {
+            background: var(--matrix-green);
+            box-shadow: 0 0 15px var(--matrix-green);
+            transform: scale(0.95);
+        }
+
+        /* Main Cockpit Space */
+        .main-display {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        /* Center Data Entry Field */
+        .data-entry-container {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .terminal-input {
+            width: 100%;
+            background: rgba(0, 20, 5, 0.6);
+            border: 1px solid var(--matrix-green);
+            padding: 15px;
+            color: var(--matrix-green);
+            font-family: inherit;
+            font-size: 1.1rem;
+            text-align: center;
+            outline: none;
+            box-shadow: 0 0 10px rgba(0, 255, 102, 0.2);
+            border-radius: 4px;
+        }
+        .terminal-input:focus {
+            box-shadow: 0 0 15px var(--matrix-glow);
+        }
+
+        /* Bottom Crypto QR Codes */
+        .qr-deck {
+            width: 100%;
+            max-width: 450px;
+            display: flex;
+            justify-content: space-between;
+            gap: 40px;
+            margin-bottom: 20px;
+        }
+
+        .qr-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            background: rgba(13, 17, 23, 0.8);
+            padding: 10px;
+            border: 1px dashed var(--matrix-green);
+            border-radius: 6px;
+        }
+
+        .qr-code {
+            width: 90px;
+            height: 90px;
+            border: 2px solid var(--matrix-green);
+            background: #fff;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Simulated QR blocks using linear gradients */
+        .qr-mock-1 {
+            background: repeating-linear-gradient(45deg, #000, #000 4px, #fff 4px, #fff 8px);
+            width: 100%; height: 100%;
+        }
+        .qr-mock-2 {
+            background: repeating-linear-gradient(-45deg, #000, #000 5px, #fff 5px, #fff 10px);
+            width: 100%; height: 100%;
+        }
+
+        .qr-label {
+            font-size: 0.75rem;
+            margin-top: 6px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* --- NOTIFICATION BANNER SYSTEM --- */
+        #notification-zone {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            left: 85px; /* Keeps clear of left control deck */
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 200;
+        }
+
+        .banner-notification {
+            background: rgba(0, 35, 10, 0.95);
+            border: 1px solid var(--matrix-green);
+            color: var(--matrix-green);
+            padding: 12px 20px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5), 0 0 10px var(--matrix-glow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slideDown 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .banner-close {
+            background: none;
+            border: none;
+            color: #ff3333;
+            font-weight: bold;
+            font-family: inherit;
+            cursor: pointer;
+            font-size: 1rem;
+            padding-left: 15px;
+        }
+
+        /* --- POPUP / MODAL INFO PANELS --- */
+        .info-popup {
+            position: absolute;
+            top: 50%;
+            left: 55%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 320px;
+            background: rgba(10, 15, 12, 0.95);
+            border: 2px solid var(--matrix-green);
+            box-shadow: 0 0 25px rgba(0, 255, 102, 0.3);
+            border-radius: 6px;
+            padding: 20px;
+            z-index: 50;
+            display: none;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .popup-header {
+            font-weight: bold;
+            margin-bottom: 12px;
+            border-bottom: 1px solid var(--matrix-green);
+            padding-bottom: 6px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        /* Token Traffic Scale Grid Matrix View */
+        .traffic-scale {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-top: 10px;
+        }
+        .traffic-bar {
+            height: 25px;
+            background: rgba(0, 255, 102, 0.15);
+            border: 1px solid var(--matrix-green);
+            position: relative;
+        }
+        .traffic-bar.active {
+            background: var(--matrix-green);
+            box-shadow: 0 0 8px var(--matrix-green);
+        }
+
+        /* --- ANIMATIONS & UTILS --- */
+        @keyframes pulse {
+            0% { opacity: 0.8; box-shadow: inset 0 0 10px var(--matrix-glow); }
+            50% { opacity: 1; box-shadow: inset 0 0 20px var(--matrix-green), 0 0 10px var(--matrix-glow); }
+            100% { opacity: 0.8; box-shadow: inset 0 0 10px var(--matrix-glow); }
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container">
+        <canvas id="matrixCanvas"></canvas>
+    </div>
+
+    <div id="intro-screen">
+        <div class="graphic-container">
+            <div class="emoji-header">😸🥂👻</div>
+            
+            <div class="samurai-cat-placeholder"></div>
+            
+            <button class="mute-btn" id="muteBtn">{ Mute }</button>
+            
+            <div class="welcome-banner" id="enterBtn">WELCOME</div>
+        </div>
+    </div>
+
+    <div id="cockpit">
+        
+        <div class="control-deck">
+            <div class="deck-icon" data-target="panel-crypto" title="Crypto Node">💎</div>
+            <div class="deck-icon" data-target="panel-traffic" title="Traffic Meter">🧮</div>
+            <div class="deck-icon" data-target="panel-games" title="Core Sandbox">🕹️</div>
+            <div class="deck-icon" data-target="panel-status" title="Meow Engine">😹</div>
+        </div>
+
+        <div class="main-display">
+            <div></div>
+
+            <div class="data-entry-container">
+                <input type="text" class="terminal-input" placeholder="READY FOR INGESTION..." autocomplete="off" spellcheck="false">
+            </div>
+
+            <div class="qr-deck">
+                <div class="qr-wrapper" onclick="triggerNotification('BTC Address copied to data block.')">
+                    <div class="qr-code"><div class="qr-mock-1"></div></div>
+                    <span class="qr-label">BTC NODE</span>
+                </div>
+                <div class="qr-wrapper" onclick="triggerNotification('ETH Address copied to data block.')">
+                    <div class="qr-code"><div class="qr-mock-2"></div></div>
+                    <span class="qr-label">ETH NODE</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification-zone"></div>
+
+    <div id="panel-crypto" class="info-popup">
+        <div class="popup-header">💎 Secure Nodes</div>
+        <p style="font-size: 0.8rem; line-height: 1.4;">Quantum addresses verified. Ready for standard transactions across decentralized registers.</p>
+    </div>
+
+    <div id="panel-traffic" class="info-popup">
+        <div class="popup-header">🧮 Traffic Scale</div>
+        <p style="font-size: 0.8rem;">Current digital network pressure indexes:</p>
+        <div class="traffic-scale">
+            <div class="traffic-bar active"></div>
+            <div class="traffic-bar active"></div>
+            <div class="traffic-bar active"></div>
+            <div class="traffic-bar"></div>
+        </div>
+    </div>
+
+    <div id="panel-games" class="info-popup">
+        <div class="popup-header">🕹️ System State</div>
+        <p style="font-size: 0.8rem; line-height: 1.4;">Sandbox environmental variables stable. Latency profile holds standard runtime values.</p>
+    </div>
+
+    <div id="panel-status" class="info-popup">
+        <div class="popup-header">😹 Meow System</div>
+        <p style="font-size: 0.8rem; line-height: 1.4;">Sub-routing array operations online. World domination schedules operating entirely within acceptable guidelines.</p>
+    </div>
+
+    <script>
+        // --- WEBAUDIO BACKGROUND SYNTHESIZER ---
+        let audioCtx = null;
+        let mainOsc = null;
+        let gainNode = null;
+        let isMuted = false;
+
+        function initBackgroundMusic() {
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Continuous low-frequency deep cyberpunk ambient drone oscillator
+                mainOsc = audioCtx.createOscillator();
+                let osc2 = audioCtx.createOscillator();
+                gainNode = audioCtx.createGain();
+                
+                mainOsc.type = 'sawtooth';
+                mainOsc.frequency.setValueAtTime(55, audioCtx.currentTime); // A1 pitch
+                
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(110, audioCtx.currentTime); // A2 pitch Harmonic
+
+                // Direct low-pass filtering configuration context
+                let filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(180, audioCtx.currentTime);
+
+                gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+
+                mainOsc.connect(filter);
+                osc2.connect(filter);
+                filter.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                mainOsc.start();
+                osc2.start();
+            } catch(e) {
+                console.log("Audio infrastructure initialisation deferred: ", e);
+            }
+        }
+
+        // --- INTERACTION LOGIC & TRANSITIONS ---
+        const muteBtn = document.getElementById('muteBtn');
+        const enterBtn = document.getElementById('enterBtn');
+        const introScreen = document.getElementById('intro-screen');
+        const cockpit = document.getElementById('cockpit');
+
+        // Toggle mute processing locally
+        muteBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Avoid entry event parsing bubbles
+            isMuted = !isMuted;
+            if(isMuted) {
+                muteBtn.innerText = "{ Unmute }";
+                if(gainNode) gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            } else {
+                muteBtn.innerText = "{ Mute }";
+                if(!audioCtx) {
+                    initBackgroundMusic();
+                } else {
+                    gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                }
+            }
+        });
+
+        // Main initialization entry click handling
+        enterBtn.addEventListener('click', () => {
+            if(!audioCtx && !isMuted) {
+                initBackgroundMusic();
+            }
+            
+            // UI Element Crossfade Array Sequence
+            introScreen.style.opacity = '0';
+            introScreen.style.visibility = 'hidden';
+            
+            cockpit.style.visibility = 'visible';
+            cockpit.style.opacity = '1';
+        });
+
+        // --- PERSISTENT NOTIFICATION MATRIX INFRASTRUCTURE ---
+        function triggerNotification(textMsg) {
+            const zone = document.getElementById('notification-zone');
+            
+            const banner = document.createElement('div');
+            banner.className = 'banner-notification';
+            banner.innerHTML = `
+                <span><strong>[SYSTEM]:</strong> Successfully copied - ${textMsg}</span>
+                <button class="banner-close" onclick="this.parentElement.remove()">×</button>
+            `;
+            
+            zone.appendChild(banner);
+        }
+
+        // --- CONTROL DECK INTERFACE TOGGLE CONFIGURATOR ---
+        const icons = document.querySelectorAll('.deck-icon');
+        const popups = document.querySelectorAll('.info-popup');
+
+        icons.forEach(icon => {
+            icon.addEventListener('click', (e) => {
+                const targetId = icon.getAttribute('data-target');
+                const targetPopup = document.getElementById(targetId);
+                
+                // If clicked icon is already active, close it
+                if (icon.classList.contains('active')) {
+                    icon.classList.remove('active');
+                    targetPopup.style.display = 'none';
+                    return;
+                }
+
+                // Reset state parameters globally across control targets
+                icons.forEach(i => i.classList.remove('active'));
+                popups.forEach(p => p.style.display = 'none');
+
+                // Enforce active status metrics
+                icon.classList.add('active');
+                targetPopup.style.display = 'block';
+                
+                // Dynamic position adaptation vector computation (align popup near selected deck icon)
+                const rect = icon.getBoundingClientRect();
+                targetPopup.style.top = `${Math.min(window.innerHeight - 150, Math.max(100, rect.top + 25))}px`;
+            });
+        });
+
+        // Close Popups if core viewport workspace context is clicked outside systems
+        document.querySelector('.main-display').addEventListener('click', () => {
+            icons.forEach(i => i.classList.remove('active'));
+            popups.forEach(p => p.style.display = 'none');
+        });
+
+
+        // --- MATRIX DIGITAL STREAM BACKGROUND RUNTIME RENDERING ---
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Katakana, Alpha numeric mix extracted directly from system image telemetry arrays
+        const matrixChars = "ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ1234567890PGE3X#%?";
+        const charArr = matrixChars.split("");
+
+        const fontSize = 14;
+        let columns = canvas.width / fontSize;
+        let rainDrops = [];
+
+        function initRain() {
+            columns = canvas.width / fontSize;
+            rainDrops = [];
+            for (let x = 0; x < columns; x++) {
+                rainDrops[x] = Math.random() * -100; // Randomize start phase positions
+            }
+        }
+        initRain();
+        window.addEventListener('resize', initRain);
+
+        function renderMatrixFrame() {
+            // Slight opacity preservation enables smooth character trail decay physics
+            ctx.fillStyle = 'rgba(13, 17, 23, 0.08)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#00ff66';
+            ctx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < rainDrops.length; i++) {
+                const text = charArr[Math.floor(Math.random() * charArr.length)];
+                const xPos = i * fontSize;
+                const yPos = rainDrops[i] * fontSize;
+
+                // High brightness head render execution profiling
+                if(Math.random() > 0.98) {
+                    ctx.fillStyle = '#fff';
+                } else {
+                    ctx.fillStyle = '#00ff66';
+                }
+
+                ctx.fillText(text, xPos, yPos);
+
+                if (yPos > canvas.height && Math.random() > 0.975) {
+                    rainDrops[i] = 0;
+                }
+                rainDrops[i]++;
+            }
+        }
+
+        setInterval(renderMatrixFrame, 33); // 30 FPS core rendering loops
+    </script>
+</body>
+</html>
