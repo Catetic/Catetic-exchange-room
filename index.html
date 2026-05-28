@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Catetic-Exchange Room</title>
+    <style>
+        :root {
+            --matrix-green: #00ff66;
+            --matrix-dark: #0d1117;
+            --overlay-bg: rgba(7, 10, 15, 0.95);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: var(--matrix-dark);
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden;
+            color: var(--matrix-green);
+        }
+
+        /* --- SCREEN STATES --- */
+        .app-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: 10;
+            display: none;
+        }
+
+        /* #1 Foyer / Entryway Background */
+        #screen-intro {
+            display: block; /* Launches directly into intro screen */
+            background-image: url('IMG_9249.png');
+        }
+
+        /* #2 Main Deck Cockpit Background */
+        #screen-cockpit {
+            background-image: url('IMG_9247.png');
+        }
+
+        /* --- ROOM #1: INTRO COMPONENT PLACEMENT --- */
+        .intro-container {
+            position: absolute;
+            bottom: 8%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 85%;
+            max-width: 360px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* Matrix green {mute} button precisely over welcome graphic area */
+        .mute-toggle-btn {
+            background: rgba(0, 0, 0, 0.85);
+            border: 2px solid var(--matrix-green);
+            color: var(--matrix-green);
+            padding: 8px 20px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.4);
+            text-shadow: 0 0 5px var(--matrix-green);
+        }
+
+        /* Transparent core touch zone mapped precisely directly over the graphic Welcome banner */
+        .welcome-touch-zone {
+            width: 100%;
+            height: 80px;
+            cursor: pointer;
+            background: rgba(0, 255, 102, 0.03);
+            border-radius: 8px;
+        }
+
+        /* --- ROOM #2: COCKPIT INTERFACE LAYOUT --- */
+        .cockpit-grid {
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: 75px 1fr;
+            grid-template-rows: 1fr;
+        }
+
+        /* Vertical Control Deck Docked on Left Margin */
+        .control-deck {
+            background: rgba(13, 17, 23, 0.4);
+            border-right: 1px solid rgba(0, 255, 102, 0.15);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 40px;
+            gap: 30px;
+            z-index: 20;
+        }
+
+        .deck-node {
+            width: 55px;
+            height: 55px;
+            border: 1px solid rgba(0, 255, 102, 0.4);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            cursor: pointer;
+            background: rgba(7, 10, 15, 0.7);
+            transition: all 0.2s ease;
+        }
+        .deck-node:active, .deck-node.active {
+            background: var(--matrix-green);
+            box-shadow: 0 0 20px var(--matrix-green);
+            transform: scale(0.92);
+        }
+
+        /* Main Screen Presentation Workspace */
+        .main-workspace {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 40px 20px 0 20px;
+        }
+
+        /* Centered Text Data Entry Ingestion Field */
+        .ingestion-container {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 120px; /* Offset to float nicely over central graphics */
+        }
+
+        .terminal-field {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            border: 1.5px solid var(--matrix-green);
+            padding: 16px;
+            color: var(--matrix-green);
+            font-family: inherit;
+            font-size: 1.1rem;
+            text-align: center;
+            outline: none;
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.2);
+            border-radius: 6px;
+        }
+
+        /* Crypto Split Footer Layout Matrix (Two widely spaced QR portals) */
+        .crypto-footer-strip {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 160px; /* Perfectly covers bottom QR code display vertical footprint height */
+            display: flex;
+        }
+
+        /* Separated left side tap mechanism spanning up slightly over B to edge */
+        .crypto-touch-box {
+            height: 100%;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.01); /* Invisible but active transparent hitboxes */
+        }
+        #box-btc {
+            width: 45%;
+        }
+        #box-spacer {
+            width: 10%; /* Explicit center dead zone / no-man's land buffer to separate targets */
+            cursor: default;
+        }
+        #box-eth {
+            width: 45%;
+        }
+
+        /* --- FLOATING "PAW" NOTIFICATION OVERLAY --- */
+        #paw-notification-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            z-index: 500;
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 30px;
+        }
+
+        .paw-banner {
+            background: rgba(7, 15, 10, 0.95);
+            border: 2px solid var(--matrix-green);
+            color: var(--matrix-green);
+            padding: 16px 24px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            box-shadow: 0 0 25px var(--matrix-green);
+            text-align: center;
+            max-width: 85%;
+        }
+
+        /* --- POPUP MODAL CONTROL WINDOWS --- */
+        .terminal-modal {
+            position: absolute;
+            top: 50%;
+            left: calc(50% + 37px); /* Centers modal balance offset from left control deck */
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 340px;
+            background: var(--overlay-bg);
+            border: 2px solid var(--matrix-green);
+            box-shadow: 0 0 30px rgba(0, 255, 102, 0.35);
+            border-radius: 8px;
+            padding: 22px;
+            z-index: 100;
+            display: none;
+        }
+
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-bottom: 1px dashed var(--matrix-green);
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* 💎 Exchange Selection Styles */
+        .exchange-select {
+            width: 100%;
+            background: #000;
+            border: 1px solid var(--matrix-green);
+            color: var(--matrix-green);
+            font-family: inherit;
+            padding: 10px;
+            margin-bottom: 15px;
+            outline: none;
+        }
+        
+        .file-loader-label {
+            display: block;
+            border: 1px dashed var(--matrix-green);
+            padding: 10px;
+            text-align: center;
+            font-size: 0.8rem;
+            cursor: pointer;
+            margin-bottom: 20px;
+            background: rgba(0,255,102,0.05);
+        }
+
+        /* 🧮 Live Invoice Receipt Text Generation Layout */
+        .receipt-line {
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            white-space: pre-wrap;
+        }
+
+        .receipt-action-row {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .action-sub-btn {
+            flex: 1;
+            background: rgba(0,255,102,0.1);
+            border: 1px solid var(--matrix-green);
+            color: var(--matrix-green);
+            font-family: inherit;
+            font-size: 0.75rem;
+            padding: 6px;
+            cursor: pointer;
+        }
+
+        /* 🕹️ Rules Room Custom Layout (Emulating image_5.png high-contrast / text display layout) */
+        #modal-info-panel {
+            background: rgba(235, 255, 240, 0.98);
+            color: #052005;
+            border: 3px solid #052005;
+            box-shadow: 0 0 30px rgba(0,0,0,0.6);
+        }
+        #modal-info-panel .modal-title {
+            border-bottom: 2px solid #052005;
+        }
+        #modal-info-panel .terminal-action-btn {
+            background: #052005;
+            color: #eeffee;
+        }
+
+        /* Core Terminal Modal Operational Executable Actions Button */
+        .terminal-action-btn {
+            width: 100%;
+            background: rgba(0, 255, 102, 0.15);
+            border: 1.5px solid var(--matrix-green);
+            color: var(--matrix-green);
+            padding: 10px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            margin-top: 5px;
+        }
+        .terminal-action-btn:active {
+            background: var(--matrix-green);
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- --- ROOM #1: THE WELCOMING FOYER --- -->
+    <div id="screen-intro" class="app-screen">
+        <div class="intro-container">
+            <!-- Positioned matrix green {mute} button directly over top of welcome text graphic layout area -->
+            <button class="mute-toggle-btn" id="mute-controller">{ Mute }</button>
+            
+            <!-- Welcome interaction touch-zone mapping vector -->
+            <div class="welcome-touch-zone" id="welcome-trigger-node"></div>
+        </div>
+    </div>
+
+
+    <!-- --- ROOM #2: THE COMMAND COCKPIT DECK --- -->
+    <div id="screen-cockpit" class="app-screen">
+        <div class="cockpit-grid">
+            
+            <!-- Left Margin Docked Navigation Module Control Deck -->
+            <div class="control-deck">
+                <div class="deck-node" id="node-exchange" title="Exchange Setup">💎</div>
+                <div class="deck-node" id="node-total" title="Invoice Ledger">🧮</div>
+                <div class="deck-node" id="node-info" title="Rules Room">🕹️</div>
+                <div class="deck-node" id="node-staytuned" title="Buss Loop Toggle">😹</div>
+            </div>
+
+            <!-- Workspace Matrix Body Frame Presentation Window -->
+            <div class="main-workspace">
+                
+                <!-- Centered Ingestion Input Target Field -->
+                <div class="ingestion-container">
+                    <input type="text" id="data-core-input" class="terminal-field" placeholder="DROP PASTE DATA TO INGEST..." autocomplete="off" spellcheck="false">
+                </div>
+
+                <!-- Widely Separated Bottom Crypto Footprint Touch Area -->
+                <div class="crypto-footer-strip">
+                    <!-- Left Button capability covers left portion slightly over B to outer edge -->
+                    <div class="crypto-touch-box" id="box-btc" title="Copy Bitcoin Address"></div>
+                    
+                    <!-- Clear Safe No-Man's Land Middle Gap Space to Prevent Accidental Touches -->
+                    <div class="crypto-touch-box" id="box-spacer"></div>
+                    
+                    <!-- Right Button capability covers right portion starting from E to outer edge -->
+                    <div class="crypto-touch-box" id="box-eth" title="Copy Ethereum Address"></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- --- FLOATING "PAW" GLOBAL CLOSABLE OVERLAY --- -->
+    <div id="paw-notification-overlay">
+        <div class="paw-banner" id="paw-banner-text">Successfully copied to your paw 😹</div>
+    </div>
+
+
+    <!-- --- MODAL POPUP LAYERS MANAGEMENT STACK --- -->
+    
+    <!-- 💎 EXCHANGE MODAL PORTAL WINDOW -->
+    <div class="terminal-modal" id="modal-exchange-panel">
+        <div class="modal-title">💎 Platform Select</div>
+        <select class="exchange-select" id="platform-router">
+            <option value="GEMINI">GEMINI [PRIMARY ROUTE]</option>
+            <option value="NEXT_GEN_AI" disabled>ALTERNATIVE CORE (COMING SOON)</option>
+        </select>
+        <label class="file-loader-label">
+            📁 LOAD FILE DATA MODULE
+            <input type="file" id="file-ingestor" style="display: none;">
+        </label>
+        <p style="font-size:0.75rem; color:red; margin-bottom:15px;">* Limit discussion data configuration pending context.</p>
+        <button class="terminal-action-btn modal-close-trigger">OK</button>
+    </div>
+
+    <!-- 🧮 TOTAL RECEIPT MODAL PORTAL LEDGER -->
+    <div class="terminal-modal" id="modal-total-panel">
+        <div class="modal-title">🧮 Tokinitos Invoicing</div>
+        <div id="receipt-printout-area">
+            <!-- Real-time metabolic matrix rate calculations populated here dynamically -->
+        </div>
+        <div class="receipt-action-row">
+            <button class="action-sub-btn" id="receipt-copy-action">COPY DATA</button>
+            <button class="action-sub-btn" id="receipt-save-action" onclick="alert('System Matrix frame capture snapshot added to photos log.')">SAVE TO FOTOS</button>
+        </div>
+        <button class="terminal-action-btn modal-close-trigger">OK</button>
+    </div>
+
+    <!-- 🕹️ INFO / RULES ROOM INTERACTIVE CONTAINER PANEL -->
+    <div class="terminal-modal" id="modal-info-panel">
+        <div class="modal-title">🕹️ System Specification Rules</div>
+        <div style="font-size: 0.8rem; line-height: 1.4; max-height: 220px; overflow-y: auto; margin-bottom: 15px; font-weight: bold;">
+            <p>Welcome to the Catetic-Exchange Room ecosystem matrix array.</p><br>
+            <p>This terminal consumes raw data injections and displays real-time execution receipt balances mapped across variable platforms and Tokinitos metabolic processing vectors.</p><br>
+            <p style="color: #aa0000;">⚠️ New AI platforms rate variations coming soon.</p><br>
+            <p>Thank You for donations.</p><br>
+            <p>Send a memo when donating with your mail for more future perks.</p>
+        </div>
+        <button class="terminal-action-btn" style="margin-bottom:10px; font-size:0.7rem;" onclick="alert('Comment terminal routing active. Drop parameters anytime.')">Leave a comment / Request other crypto addresses</button>
+        <button class="terminal-action-btn modal-close-trigger">…… Exit ……. Back #2</button>
+    </div>
+
+
+    <!-- --- WEB SYSTEM CONTROLLER APPLICATION SCRIPTS --- -->
+    <script>
+        // --- MASTER SYSTEM CONSTANTS DATA REGISTERS ---
+        const WALLET_BTC = "bc1q92lt3zqcsfmyjasjchgqxp4w2khmqwse9c5f59";
+        const WALLET_ETH = "0x8238da0AEB879164a7B53607E527350f0D1F1990";
+
+        // --- NATIVE HTML AUDIO PLAYER PIPELINE INFRASTRUCTURE ---
+        const audioTundra = new Audio('breath_of_the_tundra.mp3');
+        const audioBuss = new Audio('Buss mp4.m4a');
+
+        // Loop operational properties setup
+        audioTundra.loop = true;
+        audioBuss.loop = true;
+
+        let systemMuted = false;
+        let bussPlaying = false;
+
+        // --- HTML NODE ELEMENT POINTER DOM SELECTORS ---
+        const muteController = document.getElementById('mute-controller');
+        const welcomeTriggerNode = document.getElementById('welcome-trigger-node');
+        const screenIntro = document.getElementById('screen-intro');
+        const screenCockpit = document.getElementById('screen-cockpit');
+        
+        const dataCoreInput = document.getElementById('data-core-input');
+        const boxBtc = document.getElementById('box-btc');
+        const boxEth = document.getElementById('box-eth');
+        
+        const pawNotificationOverlay = document.getElementById('paw-notification-overlay');
+        const pawBannerText = document.getElementById('paw-banner-text');
+
+        // Modal Selector Map Elements
+        const nodeExchange = document.getElementById('node-exchange');
+        const nodeTotal = document.getElementById('node-total');
+        const nodeInfo = document.getElementById('node-info');
+        const nodeStayTuned = document.getElementById('node-staytuned');
+
+        const modalExchange = document.getElementById('modal-exchange-panel');
+        const modalTotal = document.getElementById('modal-total-panel');
+        const modalInfo = document.getElementById('modal-info-panel');
+        const receiptPrintoutArea = document.getElementById('receipt-printout-area');
+
+        // --- AUDIO ENGINE LOGIC CONTROLLERS ---
+        function executeAudioEngineInitialization() {
+            if (!systemMuted) {
+                audioTundra.play().catch(err => console.log("User interaction required to unlock audio timeline arrays: ", err));
+            }
+        }
+
+        // Initialize audio engine automatically when the DOM structure loads safely
+        window.addEventListener('DOMContentLoaded', () => {
+            // Attempt auto-play trigger
+            executeAudioEngineInitialization();
+        });
+
+        // Mute state button controller configuration execution context
+        muteController.addEventListener('click', (event) => {
+            event.stopPropagation(); // Avoid triggering screen transitions
+            systemMuted = !systemMuted;
+            if (systemMuted) {
+                muteController.innerText = "{ Unmute }";
+                muteController.style.borderColor = "#ff3333";
+                muteController.style.color = "#ff3333";
+                audioTundra.pause();
+                audioBuss.pause();
+            } else {
+                muteController.innerText = "{ Mute }";
+                muteController.style.borderColor = "var(--matrix-green)";
+                muteController.style.color = "var(--matrix-green)";
+                audioTundra.play().catch(() => {});
+                if (bussPlaying) audioBuss.play().catch(() => {});
+            }
+        });
+
+        // --- NAVIGATION & DOM ROOM ROUTING ---
+        welcomeTriggerNode.addEventListener('click', () => {
+            // Boot setup audio verification
+            executeAudioEngineInitialization();
+            
+            // UI Screen fade and clean visibility swap transitions array sequence
+            screenIntro.style.display = 'none';
+            screenCockpit.style.display = 'block';
+        });
+
+        // --- GLOBAL PAW NOTIFICATION MANAGER SYSTEM ---
+        function triggerPawNotification(messageText) {
+            pawBannerText.innerText = messageText;
+            pawNotificationOverlay.style.display = 'flex';
+        }
+
+        // Universal closable interaction parameter: pop up window closes after press any where
+        window.addEventListener('click', (e) => {
+            if (pawNotificationOverlay.style.display === 'flex') {
+                pawNotificationOverlay.style.display = 'none';
+            }
+        });
+        pawNotificationOverlay.addEventListener('click', () => {
+            pawNotificationOverlay.style.display = 'none';
+        });
+
+        // --- RE-ENFORCED SEPARATED CRYPTO PORTS INTERACTION TRACKS ---
+        boxBtc.addEventListener('click', (e) => {
+            e.stopPropagation();
+            navigator.clipboard.writeText(WALLET_BTC).then(() => {
+                triggerPawNotification("Bitcoin successfully copied to your paw 😹");
+            });
+        });
+
+        boxEth.addEventListener('click', (e) => {
+            e.stopPropagation();
+            navigator.clipboard.writeText(WALLET_ETH).then(() => {
+                triggerPawNotification("Ethereum successfully copied to your paw 😹");
+            });
+        });
+
+        // --- CONTROL DECK DYNAMICS NODES FUNCTIONALITIES ---
+        function clearActiveModalStates() {
+            modalExchange.style.display = 'none';
+            modalTotal.style.display = 'none';
+            modalInfo.style.display = 'none';
+            nodeExchange.classList.remove('active');
+            nodeTotal.classList.remove('active');
+            nodeInfo.classList.remove('active');
+        }
+
+        // Close logic processing maps across all explicit validation modal components
+        document.querySelectorAll('.modal-close-trigger').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                clearActiveModalStates();
+            });
+        });
+
+        // 💎 Exchange Panel Interface Trigger
+        nodeExchange.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = (modalExchange.style.display === 'block');
+            clearActiveModalStates();
+            if (!isOpen) {
+                nodeExchange.classList.add('active');
+                modalExchange.style.display = 'block';
+            }
+        });
+
+        // 🧮 Invoicing Receipt Engine Ticker Logic
+        nodeTotal.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = (modalTotal.style.display === 'block');
+            clearActiveModalStates();
+            if (!isOpen) {
+                nodeTotal.classList.add('active');
+                
+                // Read raw text entry ingestion metric properties matrix
+                const inputLength = dataCoreInput.value.length || 0;
+                
+                // Dynamic metabolic computation algorithm based on characters consumed vs tokens (Tokinitos)
+                const flashLiteCalc = Math.floor(inputLength * 0.4);
+                const flashCalc = Math.floor(inputLength * 0.9);
+                const proCalc = Math.floor(inputLength * 1.5);
+                const proThinkingCalc = Math.floor(inputLength * 2.8);
+                const proExtendedCalc = Math.floor(inputLength * 4.2);
+
+                // Compile precise output matrix receipt structure specified configuration
+                receiptPrintoutArea.innerHTML = `
+                    <div class="receipt-line">Flash light = ${flashLiteCalc} Tokinitos</div>
+                    <div class="receipt-line">Flash      = ${flashCalc} Tokinitos</div>
+                    <div class="receipt-line">Pro        = ${proCalc} Tokinitos</div>
+                    <div class="receipt-line">Pro thinking = ${proThinkingCalc} Tokinitos</div>
+                    <div class="receipt-line">Pro Extended = ${proExtendedCalc} Tokinitos</div>
+                    <div class="receipt-line" style="margin-top:12px; font-weight:bold; color:var(--matrix-green);">Thank not</div>
+                `;
+
+                modalTotal.style.display = 'block';
+            }
+        });
+
+        // Receipt content copy engine implementation
+        document.getElementById('receipt-copy-action').addEventListener('click', () => {
+            const cleanText = receiptPrintoutArea.innerText;
+            navigator.clipboard.writeText(cleanText).then(() => {
+                alert("Receipt ledger copied to systemic terminal memory block.");
+            });
+        });
+
+        // 🕹️ Info Panel / Rules Room Target Trigger
+        nodeInfo.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = (modalInfo.style.display === 'block');
+            clearActiveModalStates();
+            if (!isOpen) {
+                nodeInfo.classList.add('active');
+                modalInfo.style.display = 'block';
+            }
+        });
+
+        // 😹 Stay Tuned Audio Mixer Control On/Off Switch Node
+        nodeStayTuned.addEventListener('click', (e) => {
+            e.stopPropagation();
+            bussPlaying = !bussPlaying;
+            
+            if (bussPlaying) {
+                nodeStayTuned.classList.add('active');
+                if (!systemMuted) {
+                    audioBuss.play().catch(err => console.log("Playback tracking conflict: ", err));
+                }
+            } else {
+                nodeStayTuned.classList.remove('active');
+                audioBuss.pause();
+            }
+        });
+
+        // File loader auxiliary ingestion bridge interface hook
+        document.getElementById('file-ingestor').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    dataCoreInput.value = e.target.result;
+                    alert(`Data file [${file.name}] successfully injected into operational core buffer memory.`);
+                };
+                reader.readAsText(file);
+            }
+        });
+    </script>
+</body>
+</html>
