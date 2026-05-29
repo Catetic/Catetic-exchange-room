@@ -658,17 +658,18 @@
         });
 
         // 😹 AUDIO DUEL SWITCHBOARD LOGIC
+        // 😹 AUDIO DUEL SWITCHBOARD LOGIC
         nodeStayTuned.addEventListener('click', (e) => {
             e.stopPropagation();
-            nodeStayTuned.classList.toggle('active'); 
             meowPlaying = !meowPlaying;
             if (meowPlaying) {
-               audioMeowLoop.currentTime = 0; // 🔄 THE FIX: Rewinds to start before playing!
-        audioMeowLoop.play().catch(e => console.log(e));
-        meowPlaying = true;
-    } else {
-        audioMeowLoop.pause();
-    
+                nodeStayTuned.classList.add('active');
+                audioMainLoop.pause(); // Shuts down main background soundtrack cleanly
+                audioMeowLoop.play().catch(err => console.log("Stream pipeline hold:", err));
+            } else {
+                nodeStayTuned.classList.remove('active');
+                audioMeowLoop.pause(); // Kills meow track override loop
+                audioMainLoop.play().catch(err => console.log("Main return error:", err)); // Restores water loop
             }
         });
 
