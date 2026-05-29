@@ -129,12 +129,16 @@
 
         /* Shifted lower down the vertical 
         /* Re-centered perfectly in the viewport workspace */
-     .ingestion-container {
-         width: 100%;
-        max-width: 400px;
-      transition: opacity 0.2s ease;
-     z-index: 15;
-     margin-top: -40px; /* Counterweights bottom footer space allocation */
+                      /* Perfectly squeezed, centered, and lifted above the QR codes */
+        .ingestion-container {
+            width: 100%;
+            max-width: 250px; /* Squeezes it to align with the 55px side nodes */
+            margin: 0 auto;   /* Keeps it perfectly centered horizontally */
+            z-index: 15;
+            position: relative;
+            top: -60px;       /* Lifts it up beautifully right above the crypto footer */
+            transition: opacity 0.2s ease;
+        
 
 
         }
