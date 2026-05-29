@@ -127,16 +127,15 @@
             height: 100%;
         }
 
-        /* Shifted lower down the vertical axis */
-        .ingestion-container {
-            width: 100%;
-            max-width: 300px;
-             margin-bottom: 240px !important; 
-             margin-left: auto; /* Pushes it just enough away from the left screen edge */
-            margin-right: auto ;
-
-             transform: translateX(-37.5px); /* Pulls it perfectly left by exactly half the sidebar width! 🛸 */
-
+        /* Shifted lower down the vertical 
+        /* Re-centered perfectly in the viewport workspace */
+     .ingestion-container {
+         width: 100%;
+        max-width: 400px;
+      transition: opacity 0.2s ease;
+     z-index: 15;
+     margin-top: -40px; /* Counterweights bottom footer space allocation */
+}
 
         }
 
