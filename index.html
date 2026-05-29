@@ -93,6 +93,10 @@
             padding-top: 40px;
             gap: 25px;
             z-index: 20;
+              /* ADD THIS LINE RIGHT HERE: */
+    border-right: 2px solid rgba(0, 255, 102, 0.2) !important;
+    height: 400px !important; /* Forces the entire column to stop right below the cat emoji! */
+}
         }
 
         .deck-node {
@@ -128,9 +132,10 @@
         .ingestion-container {
             width: 100%;
             max-width: 400px;
-                margin-bottom: 80px;
-                margin-left: auto !important;
-                margin-right: auto !important;
+             margin-bottom: 40px;
+           margin-left: 110px !important; /* Pushes it just enough away from the left screen edge */
+            margin-right: auto !important;
+
 
         }
 
