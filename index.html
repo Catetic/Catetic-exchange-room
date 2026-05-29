@@ -660,6 +660,7 @@
         // 😹 AUDIO DUEL SWITCHBOARD LOGIC
         nodeStayTuned.addEventListener('click', (e) => {
             e.stopPropagation();
+            nodeStayTuned.classList.toggle('active'); 
             meowPlaying = !meowPlaying;
             if (meowPlaying) {
                audioMeowLoop.currentTime = 0; // 🔄 THE FIX: Rewinds to start before playing!
