@@ -130,7 +130,7 @@
         /* Shifted lower down the vertical axis */
         .ingestion-container {
             width: 100%;
-            max-width: 320px;
+            max-width: 280px;
              margin-bottom: 220px !important; 
              margin-left: auto; /* Pushes it just enough away from the left screen edge */
             margin-right: auto ;
@@ -662,13 +662,12 @@
             e.stopPropagation();
             meowPlaying = !meowPlaying;
             if (meowPlaying) {
-                nodeStayTuned.classList.add('active');
-                audioMainLoop.pause(); // Shuts down main background soundtrack cleanly
-                audioMeowLoop.play().catch(err => console.log("Stream pipeline hold:", err));
-            } else {
-                nodeStayTuned.classList.remove('active');
-                audioMeowLoop.pause(); // Kills meow track override loop
-                audioMainLoop.play().catch(err => console.log("Main return error:", err)); // Restores water loop
+               audioMeowLoop.currentTime = 0; // 🔄 THE FIX: Rewinds to start before playing!
+        audioMeowLoop.play().catch(e => console.log(e));
+        meowPlaying = true;
+    } else {
+        audioMeowLoop.pause();
+        meowPlaying = false;
             }
         });
 
