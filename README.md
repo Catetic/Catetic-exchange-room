@@ -1,2 +1,2 @@
-# Catetic-Exchange Room ⚖️
+# Catetic-Weighting Room ⚖️
 Token weighting room
