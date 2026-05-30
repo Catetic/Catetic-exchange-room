@@ -448,15 +448,18 @@
         </div>
         
         <button class="terminal-action-btn" id="comment-opener-btn" style="background:rgba(0, 255, 102, 0.1); color:var(--matrix-green); font-size:0.75rem; margin-bottom:5px; border-color: var(--matrix-green);">LEAVE A COMMENT / REQUEST OTHER CRYPTO ADDRESSES</button>
+  <form class="comment-sub-window" id="comment-box-portal" action="mailto:cateticos@gmail.com" method="POST" enctype="text/plain">
+    
+    <textarea class="comment-input" id="comment-text-field" name="comment" placeholder="Type comment..."></textarea>
+           <input type="email" class="comment-input" id="comment-mail-field" name="email" placeholder="cateticos@gmail.com">
+    
+           <div style="display:flex; gap:10px;">
+        <button class="action-sub-btn" id="comment-send-btn" style="border-color: ...">SEND</button>
+        <button class="action-sub-btn" id="comment-close-btn" style="border-color: ...">CANCEL</button>
+    </div>
+</form>
+
         
-        <div class="comment-sub-window" id="comment-box-portal">
-            <textarea class="comment-input" id="comment-text-field" placeholder="Type comment text parameter here..." rows="2"></textarea>
-            <input type="email" class="comment-input" id="comment-mail-field" placeholder="Your mail address...">
-            <div style="display:flex; gap:10px;">
-                <button class="action-sub-btn" id="comment-send-btn" style="border-color:var(--matrix-green); color:var(--matrix-green);">SEND</button>
-                <button class="action-sub-btn" id="comment-close-btn" style="border-color:#ff3333; color:#ff3333;">CANCEL</button>
-            </div>
-        </div>
 
         <button class="terminal-action-btn modal-close-trigger" style="margin-top:10px;">…… Exit Balkan Back #2</button>
     </div>
@@ -703,10 +706,8 @@
                 return;
             }
 
-            triggerPawPopup("Comment parameter sent cleanly to cat@catetic.cat 😹");
-            commentBoxPortal.style.display = 'none';
-            commentTextField.value = "";
-            commentMailField.value = "";
+        
+
         });
 
         nodeStayTuned.addEventListener('click', (e) => {
@@ -721,6 +722,20 @@
                 audioMeowLoop.pause();
                 audioMainLoop.play().catch(err => console.log("Return error:", err));
             }
+            // Trigger your signature neon success modal cleanly
+triggerPawPopup("Comment parameter sent cleanly to cateticos@gmail.com 😹");
+
+// Hold the layout frame for 800ms, then invoke the mail client handoff
+setTimeout(() => {
+    // Submits the new form block directly by its tracking ID
+    document.getElementById('comment-box-portal').submit();
+    
+    // Wipes the terminal interface inputs and closes the window portal
+    commentBoxPortal.style.display = 'none';
+    commentTextField.value = "";
+    commentMailField.value = "";
+}, 800);
+
         });
 
         document.getElementById('file-ingestor').addEventListener('change', function(e) {
