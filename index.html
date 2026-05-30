@@ -654,7 +654,7 @@
                     
                     matrixLoaderShroud.style.display = 'none';
                     modalTotal.style.display = 'block';
-                }, 1500); 
+                }, 1200); 
             }
         });
 
@@ -703,12 +703,24 @@
                 return;
             }
 
+                    if(!commentText) {
+            triggerPawPopup("Comment block parameter is empty! 🙀");
+            return;
+        }
+
+        const mailtoUrl = `mailto:cateticos@gmail.com?subject=Terminal Transmission&body=comment=${encodeURIComponent(commentTextField.value)}%0D%0Aemail=${encodeURIComponent(commentMailField.value)}`;
+        
+        // This stops it from jumping straight into the app without asking!
+        window.location.href = mailtoUrl;
+
+        setTimeout(() => {
             triggerPawPopup("Comment parameter sent cleanly to cateticos@gmail.com 😹");
             commentBoxPortal.style.display = 'none';
             commentTextField.value = "";
             commentMailField.value = "";
-        });
-hi
+        }, 800);
+    });
+
         nodeStayTuned.addEventListener('click', (e) => {
             e.stopPropagation();
             meowPlaying = !meowPlaying;
