@@ -722,21 +722,24 @@
                 audioMeowLoop.pause();
                 audioMainLoop.play().catch(err => console.log("Return error:", err));
             }
-            // Trigger your signature neon success modal cleanly
-triggerPawPopup("Comment parameter sent cleanly to cateticos@gmail.com 😹");
+            // Trigger your signature neon success modal 
+     if(!commentText) {
+            triggerPawPopup("Comment block parameter is empty! 🙀");
+            return;
+        }
 
-// Hold the layout frame for 800ms, then invoke the mail client handoff
-setTimeout(() => {
-    // Submits the new form block directly by its tracking ID
-    document.getElementById('comment-box-portal').submit();
-    
-    // Wipes the terminal interface inputs and closes the window portal
-    commentBoxPortal.style.display = 'none';
-    commentTextField.value = "";
-    commentMailField.value = "";
-}, 800);
+        const mailtoUrl = `mailto:cateticos@gmail.com?subject=Terminal Transmission&body=comment=${encodeURIComponent(commentTextField.value)}%0D%0Aemail=${encodeURIComponent(commentMailField.value)}`;
+        
+        // This stops it from jumping straight into the app without asking!
+        window.location.href = mailtoUrl;
 
-        });
+        setTimeout(() => {
+            triggerPawPopup("Comment parameter sent cleanly to cateticos@gmail.com 😹");
+            commentBoxPortal.style.display = 'none';
+            commentTextField.value = "";
+            commentMailField.value = "";
+        }, 800);
+    });
 
         document.getElementById('file-ingestor').addEventListener('change', function(e) {
             const file = e.target.files[0];
