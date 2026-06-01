@@ -1046,6 +1046,19 @@
                 modalInfo.style.display = 'block';
             }
         });
+        const nodeDisclaimer = document.getElementById('node-disclaimer');
+        const modalDisclaimer = document.getElementById('modal-disclaimer-panel');
+
+        nodeDisclaimer.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = (modalDisclaimer.style.display === 'block');
+            clearActiveModalStates();
+            if (!isOpen) {
+                nodeDisclaimer.classList.add('active');
+                setWorkspaceInputVisibility(false);
+                modalDisclaimer.style.display = 'block';
+            }
+        });
 
         commentOpenerBtn.addEventListener('click', (e) => {
             e.stopPropagation();
