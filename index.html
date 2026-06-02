@@ -721,8 +721,8 @@
         <button class="terminal-action-btn modal-close-trigger">OK</button>
     </div>
           <!-- SQUEEZE THE POPUP BOX HERE -->
-<div id="instruction-popup" class="popup-modal">
-    <div class="popup-content">
+           <div id="instruction-popup" class="popup-modal" style="display: none;">
+          <div class="popup-content">
         <h3>CHOOSE YOUR CALCULATION METHOD 🍜</h3>
         <p>You have two options to process your data:</p>
         <ul style="text-align: left; margin: 10px auto; max-width: 80%; line-height: 1.5; color: var(--matrix-green);">
@@ -733,7 +733,7 @@
             (Don't worry, your data is never collected — this is pure client-side calculation!)
         </p>
         <p style="margin-top: 15px; font-weight: bold;">Thanks for the donation! 😹🙏</p>
-        <button onclick="this.closest('.popup-modal').classList.remove('active')">CLOSE</button>
+          <button onclick="this.closest('.popup-modal').classList.remove('active')">CLOSE</button>
     </div>
 </div>
 
@@ -1320,10 +1320,11 @@
                 triggerPawPopup("Lounge Track Matrix restored cleanly.");
             }
         };
-             document.getElementById('data-core-input').addEventListener('paste', () => 
-                 const popup = document.getElementById('instruction-popup');
-                 if (popup) popup.classList.add('active'); 
-       });
+             document.getElementById('data-core-input').addEventListener('paste', () => {
+    const popup = document.getElementById('instruction-popup');
+    if (popup) popup.style.display = 'flex'; // Unhides the popup instantly on paste!
+});
+
 
     </script>
 </body>
