@@ -961,28 +961,25 @@
         }
 
         function triggerKeypadFaultCircuit() {
-            audioTune4.currentTime = 0;
-            audioTune4.play().catch(err => console.log("Audio loop fault off:", err)); 
-            runningInputCache = ""; 
-            updateVirtualDisplayPanel("ERROR");
-        }
+    const errorChime = new Audio('Tune2.mp3');
+    errorChime.volume = 0.6;
+    errorChime.play().catch(err => console.log(err)); 
+    
+    runningInputCache = ""; 
+    updateVirtualDisplayPanel("ERROR");
+}
 
-        nodeStayTuned.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if(!audioMeowLoop.paused) {
-                audioMeowLoop.pause();
-                audioMainLoop.currentTime = 0;
-                audioMainLoop.play().catch(err => console.log("Audio lock:", err));
-                nodeStayTuned.classList.remove('active-green');
-                triggerPawPopup("Main Anthem restored cleanly! 🎵");
-            } else {
-                audioMainLoop.pause();
-                audioMeowLoop.currentTime = 0;
-                audioMeowLoop.play().catch(err => console.log("Audio lock:", err));
-                applyNeonSidebarIndicator(3);
-                triggerPawPopup("Meow Matrix audio loop initialized! 😹");
-            }
-        });
+       nodeStayTuned.addEventListener('click', (e) => {
+    e.stopPropagation();
+    
+    if (!audioMeowLoop.paused) {
+        audioMeowLoop.pause();
+        nodeStayTuned.classList.remove('active-green');
+    } else {
+        audioMeowLoop.currentTime = 0;
+        audioMeowLoop.play().catch(err => console.log(err));
+    }
+});
 
         function setWorkspaceInputVisibility(visible) {
             if (visible) {
@@ -1051,24 +1048,24 @@
                 clearActiveModalStates();
             });
         });
-
-        nodeExchange.addEventListener('click', (e) => {
+                   window.triggerLoungeAudioConsoleToggle = function(e) {
             e.stopPropagation();
-            const isOpen = (modalExchange.style.display === 'block');
-            clearActiveModalStates();
-            if (!isOpen) {
-                applyNeonSidebarIndicator(0);
-                setWorkspaceInputVisibility(false);
-                modalExchange.style.display = 'block';
+            if (!loungeTune4Active) {
+                audioTune1.pause();
+                audioTune4.currentTime = 0;
+                audioTune4.play().catch(err => console.log("Audio lock:", err));
+                loungeTune4Active = true;
+                triggerPawPopup("Console Override: Tune4.mp3 Intercept Active! 🎛️");
+            } else {
+                audioTune4.pause();
+                loungeTune4Active = false;
+                audioTune1.currentTime = 0;
+                audioTune1.play().catch(err => console.log("Audio lock:", err));
+                triggerPawPopup("Lounge Track Matrix restored cleanly.");
             }
-        });
+        };
 
-        function formatMatrixDots(num) {
-            let parts = num.toString().split(".");
-            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-            return parts.join(".");
-        }
-
+        
         function formatCleanMicroDollars(tokenCount) {
             let baseFraction = (tokenCount * 0.000000000001).toFixed(25);
             let index = baseFraction.indexOf(".");
