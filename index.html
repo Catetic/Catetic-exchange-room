@@ -720,6 +720,26 @@
         </div>
         <button class="terminal-action-btn modal-close-trigger">OK</button>
     </div>
+          <!-- SQUEEZE THE POPUP BOX HERE -->
+<div id="instruction-popup" class="popup-modal">
+    <div class="popup-content">
+        <div id="instruction-popup" class="popup-modal">
+    <div class="popup-content">
+        <h3>CHOOSE YOUR CALCULATION METHOD 🍜</h3>
+        <p>You have two options to process your data:</p>
+        <ul style="text-align: left; margin: 10px auto; max-width: 80%; line-height: 1.5; color: var(--matrix-green);">
+            <li><strong>Option 1:</strong> Open 🧮 right away to see your Tokinitos breakdown.</li>
+            <li><strong>Option 2:</strong> Press 💎 to load your file, then press 🧮 to see your total Tokinitos.</li>
+        </ul>
+        <p style="font-size: 0.9rem; opacity: 0.8; margin-top: 15px;">
+            (Don't worry, your data is never collected — this is pure client-side calculation!)
+        </p>
+        <p style="margin-top: 15px; font-weight: bold;">Thanks for the donation! 😹🙏</p>
+        <button onclick="this.closest('.popup-modal').classList.remove('active')">CLOSE</button>
+    </div>
+</div>
+
+        
 
     <script>
         const ASSET_FIREWALL = "Keypad..jpg.jpg";
@@ -1302,6 +1322,11 @@
                 triggerPawPopup("Lounge Track Matrix restored cleanly.");
             }
         };
+             document.getElementById('data-core-input').addEventListener('paste', () => 
+                 const popup = document.getElementById('instruction-popup');
+                 if (popup) popup.classList.add('active'); 
+       });
+
     </script>
 </body>
 </html>
