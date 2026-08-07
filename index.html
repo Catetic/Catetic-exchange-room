@@ -1018,21 +1018,22 @@
             updateVirtualDisplayPanel("ERROR");
         }
 
-        // Fixed Meow 😹 Toggle Node Logic
-        nodeStayTuned.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (!audioMeowLoop.paused) {
-                audioMeowLoop.pause();
-                nodeStayTuned.classList.remove('active-green');
-                nodeStayTuned.classList.remove('active');
-            } else {
-                clearActiveModalStates();
-                audioMeowLoop.currentTime = 0;
-                audioMeowLoop.play().catch(err => console.log(err));
-                applyNeonSidebarIndicator(3);
-            }
-        });
+        // Fixed Meow 😹 Toggle Node 
+      nodeStayTuned.addEventListener('click', (e) => {
+    e.stopPropagation();
+    audioMainLoop.pause();
 
+    if (!audioMeowLoop.paused) {
+        audioMeowLoop.pause();
+        nodeStayTuned.classList.remove('active-green');
+        nodeStayTuned.classList.remove('active');
+    } else {
+        clearActiveModalStates();
+        audioMeowLoop.currentTime = 0;
+        audioMeowLoop.play().catch(err => console.log(err));
+        applyNeonSidebarIndicator(3);
+    }
+});
         function setWorkspaceInputVisibility(visible) {
             if (visible) {
                 inputContainerBox.style.opacity = "1";
