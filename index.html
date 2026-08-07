@@ -1021,14 +1021,15 @@
         // Fixed Meow 😹 Toggle Node 
       nodeStayTuned.addEventListener('click', (e) => {
     e.stopPropagation();
-    audioMainLoop.pause();
 
     if (!audioMeowLoop.paused) {
         audioMeowLoop.pause();
+        audioMainLoop.play().catch(err => console.log(err));
         nodeStayTuned.classList.remove('active-green');
         nodeStayTuned.classList.remove('active');
     } else {
         clearActiveModalStates();
+        audioMainLoop.pause();
         audioMeowLoop.currentTime = 0;
         audioMeowLoop.play().catch(err => console.log(err));
         applyNeonSidebarIndicator(3);
